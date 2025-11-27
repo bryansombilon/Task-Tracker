@@ -88,12 +88,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onClick, showStatus, onRemove
     setIsDragging(true);
     e.dataTransfer.setData('taskId', task.id);
     e.dataTransfer.effectAllowed = 'move';
-    // Small timeout to allow the browser to generate the drag image before hiding the element
-    setTimeout(() => {
-    }, 0);
-    // Don't stop propagation here to ensure parents can detect start if needed, 
-    // but usually stopPropagation is used to prevent parent drag handlers. 
-    // For Bento layout, we generally want specific card handling.
+    setTimeout(() => {}, 0);
     e.stopPropagation(); 
   };
 
@@ -133,8 +128,14 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onClick, showStatus, onRemove
     
     if (draggedId && onDropOver) {
       onDropOver(draggedId, task.id, dropPosition || 'after');
-      // Flag event as handled so parents don't process it again
       (e as any).bentoTaskHandled = true;
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onClick?.(task);
     }
   };
 
@@ -146,6 +147,10 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onClick, showStatus, onRemove
       )}
 
       <div 
+        role="button"
+        tabIndex={0}
+        onKeyDown={handleKeyDown}
+        aria-label={`Task: ${task.name}, Priority: ${task.priority}, Status: ${task.status}. Click to edit.`}
         draggable
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
@@ -154,7 +159,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onClick, showStatus, onRemove
         onDrop={handleDrop}
         onClick={() => onClick?.(task)}
         className={`
-          group relative border p-4 rounded-2xl transition-all duration-200 flex flex-col gap-3 cursor-grab active:cursor-grabbing select-none
+          group relative border p-4 rounded-2xl transition-all duration-200 flex flex-col gap-3 cursor-grab active:cursor-grabbing select-none outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-zinc-900
           ${isDragging 
             ? 'bg-zinc-100 dark:bg-zinc-800/50 mixed:bg-zinc-100 border-zinc-200 dark:border-zinc-700 mixed:border-zinc-200 opacity-30 grayscale scale-95' 
             : dropPosition
@@ -175,10 +180,12 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onClick, showStatus, onRemove
                 href={task.clickUpLink} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-zinc-400 dark:text-zinc-500 mixed:text-zinc-400 hover:text-indigo-600 dark:hover:text-indigo-400 mixed:hover:text-indigo-600 transition-colors p-1 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 mixed:hover:bg-indigo-50 rounded-lg"
+                className="text-zinc-400 dark:text-zinc-500 mixed:text-zinc-400 hover:text-indigo-600 dark:hover:text-indigo-400 mixed:hover:text-indigo-600 transition-colors p-1 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 mixed:hover:bg-indigo-50 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                aria-label="Open ClickUp Link"
                 title="Open ClickUp"
                 onMouseDown={(e) => e.stopPropagation()} 
                 onClick={(e) => e.stopPropagation()}
+                onKeyDown={(e) => e.stopPropagation()}
               >
                 <ExternalLink size={14} />
               </a>
@@ -189,7 +196,14 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onClick, showStatus, onRemove
                   e.stopPropagation();
                   onRemove();
                 }}
-                className="text-zinc-400 dark:text-zinc-500 mixed:text-zinc-400 hover:text-red-600 dark:hover:text-red-400 mixed:hover:text-red-600 transition-colors p-1 hover:bg-red-50 dark:hover:bg-red-900/30 mixed:hover:bg-red-50 rounded-lg"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.stopPropagation();
+                    onRemove();
+                  }
+                }}
+                className="text-zinc-400 dark:text-zinc-500 mixed:text-zinc-400 hover:text-red-600 dark:hover:text-red-400 mixed:hover:text-red-600 transition-colors p-1 hover:bg-red-50 dark:hover:bg-red-900/30 mixed:hover:bg-red-50 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                aria-label="Remove task from focus list"
                 title="Remove from High Priority"
                >
                  <X size={14} />
@@ -201,15 +215,21 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onClick, showStatus, onRemove
         <div className="flex items-center justify-between mt-auto pt-1">
           <div className="flex items-center gap-2">
             {/* Priority Chip - Colors handled via PRIORITY_COLORS constants */}
-            <div className={`flex items-center gap-1.5 px-2 py-1 rounded-lg border text-[10px] font-bold uppercase tracking-wider ${priorityClass}`}>
-              <PriorityIcon size={10} />
+            <div 
+              className={`flex items-center gap-1.5 px-2 py-1 rounded-lg border text-[10px] font-bold uppercase tracking-wider ${priorityClass}`}
+              aria-label={`Priority: ${task.priority}`}
+            >
+              <PriorityIcon size={10} aria-hidden="true" />
               <span>{task.priority}</span>
             </div>
 
             {/* Optional Status Chip */}
             {showStatus && (
-              <div className={`flex items-center gap-1.5 px-2 py-1 rounded-lg border text-[10px] font-bold uppercase tracking-wider ${StatusConfig.color} bg-white dark:bg-zinc-900 mixed:bg-white border-zinc-200 dark:border-zinc-700 mixed:border-zinc-200`}>
-                  <StatusIcon size={10} />
+              <div 
+                className={`flex items-center gap-1.5 px-2 py-1 rounded-lg border text-[10px] font-bold uppercase tracking-wider ${StatusConfig.color} bg-white dark:bg-zinc-900 mixed:bg-white border-zinc-200 dark:border-zinc-700 mixed:border-zinc-200`}
+                aria-label={`Status: ${task.status}`}
+              >
+                  <StatusIcon size={10} aria-hidden="true" />
                   <span>{task.status}</span>
               </div>
             )}
@@ -218,13 +238,13 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onClick, showStatus, onRemove
             {(hasNotes || hasLink) && (
               <div className="flex items-center gap-1.5 ml-1 pl-2 border-l border-zinc-200 dark:border-zinc-700 mixed:border-zinc-200">
                 {hasNotes && (
-                  <div className="text-zinc-400 dark:text-zinc-500 mixed:text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300" title="Has notes">
-                    <StickyNote size={12} />
+                  <div className="text-zinc-400 dark:text-zinc-500 mixed:text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300" title="Has notes" aria-label="Has notes">
+                    <StickyNote size={12} aria-hidden="true" />
                   </div>
                 )}
                 {hasLink && (
-                  <div className="text-zinc-400 dark:text-zinc-500 mixed:text-zinc-400 hover:text-indigo-500 dark:hover:text-indigo-400" title="Has ClickUp Link">
-                    <ExternalLink size={12} />
+                  <div className="text-zinc-400 dark:text-zinc-500 mixed:text-zinc-400 hover:text-indigo-500 dark:hover:text-indigo-400" title="Has ClickUp Link" aria-label="Has ClickUp Link">
+                    <ExternalLink size={12} aria-hidden="true" />
                   </div>
                 )}
               </div>
@@ -233,13 +253,19 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onClick, showStatus, onRemove
 
           {/* Date / Countdown */}
           {countdown ? (
-             <div className={`flex items-center gap-1.5 text-[10px] font-bold px-2 py-1 rounded-lg border ${countdown.color} transition-colors`}>
-               <Timer size={10} />
+             <div 
+               className={`flex items-center gap-1.5 text-[10px] font-bold px-2 py-1 rounded-lg border ${countdown.color} transition-colors`}
+               aria-label={`Deadline: ${countdown.text}`}
+              >
+               <Timer size={10} aria-hidden="true" />
                <span>{countdown.text}</span>
              </div>
           ) : task.deadline && (
-            <div className="flex items-center gap-1.5 text-[11px] text-zinc-400 dark:text-zinc-500 mixed:text-zinc-400 font-medium bg-zinc-50 dark:bg-zinc-800/50 mixed:bg-zinc-50 px-2 py-1 rounded-lg border border-zinc-100 dark:border-zinc-700/50 mixed:border-zinc-100 group-hover:border-zinc-200 dark:group-hover:border-zinc-600 mixed:group-hover:border-zinc-200 transition-colors">
-              <Calendar size={10} />
+            <div 
+              className="flex items-center gap-1.5 text-[11px] text-zinc-400 dark:text-zinc-500 mixed:text-zinc-400 font-medium bg-zinc-50 dark:bg-zinc-800/50 mixed:bg-zinc-50 px-2 py-1 rounded-lg border border-zinc-100 dark:border-zinc-700/50 mixed:border-zinc-100 group-hover:border-zinc-200 dark:group-hover:border-zinc-600 mixed:group-hover:border-zinc-200 transition-colors"
+              aria-label={`Due date: ${new Date(task.deadline).toLocaleDateString()}`}
+            >
+              <Calendar size={10} aria-hidden="true" />
               <span>{new Date(task.deadline).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
             </div>
           )}

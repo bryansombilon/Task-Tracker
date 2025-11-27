@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Task, Priority, Status, TaskFormData } from './types';
 import Sidebar from './components/Sidebar';
@@ -203,15 +204,16 @@ const App: React.FC = () => {
       {/* Theme Toggle Button (Top Right) */}
       <button 
         onClick={toggleTheme}
-        className="fixed top-6 right-6 z-50 p-2.5 rounded-full bg-white dark:bg-zinc-800 shadow-md border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all hover:scale-105"
+        className="fixed top-6 right-6 z-50 p-2.5 rounded-full bg-white dark:bg-zinc-800 shadow-md border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all hover:scale-105 outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
         title={`Current Theme: ${theme.charAt(0).toUpperCase() + theme.slice(1)}`}
+        aria-label={`Switch theme. Current theme is ${theme}`}
       >
-        {theme === 'light' && <Sun size={20} />}
-        {theme === 'dark' && <Moon size={20} />}
-        {theme === 'mixed' && <Palette size={20} />}
+        {theme === 'light' && <Sun size={20} aria-hidden="true" />}
+        {theme === 'dark' && <Moon size={20} aria-hidden="true" />}
+        {theme === 'mixed' && <Palette size={20} aria-hidden="true" />}
       </button>
 
-      <div className="flex-1 max-w-[1800px] mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-6 h-full">
+      <main className="flex-1 max-w-[1800px] mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-6 h-full">
         
         {/* Column 1: Focus List (Span 3) */}
         <div className="lg:col-span-3 h-full min-h-[400px]">
@@ -260,7 +262,7 @@ const App: React.FC = () => {
           </div>
 
         </div>
-      </div>
+      </main>
 
       {/* Floating Action Button */}
       <button
@@ -269,9 +271,10 @@ const App: React.FC = () => {
           setModalDefaultPriority(undefined);
           setIsModalOpen(true);
         }}
-        className="fixed bottom-8 right-8 w-16 h-16 bg-gradient-to-tr from-indigo-600 to-purple-600 text-white rounded-full shadow-2xl shadow-indigo-500/40 hover:shadow-indigo-500/60 hover:scale-110 active:scale-95 transition-all duration-300 flex items-center justify-center z-40 group border border-white/20"
+        className="fixed bottom-8 right-8 w-16 h-16 bg-gradient-to-tr from-indigo-600 to-purple-600 text-white rounded-full shadow-2xl shadow-indigo-500/40 hover:shadow-indigo-500/60 hover:scale-110 active:scale-95 transition-all duration-300 flex items-center justify-center z-40 group border border-white/20 outline-none focus-visible:ring-4 focus-visible:ring-indigo-300"
+        aria-label="Create a new task"
       >
-        <Plus size={32} className="group-hover:rotate-90 transition-transform duration-300" />
+        <Plus size={32} className="group-hover:rotate-90 transition-transform duration-300" aria-hidden="true" />
       </button>
 
       <AddTaskModal 

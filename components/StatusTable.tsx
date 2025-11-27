@@ -54,7 +54,8 @@ const StatusTable: React.FC<StatusTableProps> = ({ status, tasks, count, onTaskD
   };
 
   return (
-    <div 
+    <section 
+      aria-label={`${status} Tasks Drop Zone`}
       onDragOver={handleDragOver}
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
@@ -68,47 +69,48 @@ const StatusTable: React.FC<StatusTableProps> = ({ status, tasks, count, onTaskD
       `}
     >
       {/* Solid Header Block */}
-      <div className={`
+      <header className={`
         flex items-center justify-between mb-3 shrink-0 relative z-10 p-3 rounded-2xl border transition-all duration-300
         ${config.headerTheme}
         ${isDragOver ? 'scale-[1.02] shadow-sm' : ''}
       `}>
         <div className="flex items-center gap-2.5">
-          <div className="bg-white/50 dark:bg-black/40 p-1.5 rounded-lg backdrop-blur-sm">
+          <div className="bg-white/50 dark:bg-black/40 p-1.5 rounded-lg backdrop-blur-sm" aria-hidden="true">
             <Icon size={18} />
           </div>
           <h3 className="text-sm font-bold tracking-wide uppercase opacity-90">{status}</h3>
         </div>
-        <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-white/50 dark:bg-black/20 backdrop-blur-sm border border-white/10 dark:border-white/5 min-w-[24px] text-center">
+        <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-white/50 dark:bg-black/20 backdrop-blur-sm border border-white/10 dark:border-white/5 min-w-[24px] text-center" aria-label={`${count} items`}>
           {count}
         </span>
-      </div>
+      </header>
 
       {/* Task List */}
       <div className={`flex-1 overflow-y-auto px-1 -mx-1 transition-all duration-300 relative z-10 min-h-[100px] scrollbar-thin scrollbar-thumb-zinc-300 dark:scrollbar-thumb-zinc-700 scrollbar-track-transparent ${isDragOver ? 'opacity-20 blur-[2px]' : 'opacity-100'}`}>
         {tasks.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-zinc-400 dark:text-zinc-600 gap-2 opacity-50 min-h-[120px]">
-            <div className={`w-12 h-12 rounded-full border-2 border-dashed ${isDragOver ? 'border-indigo-400 bg-indigo-100 text-indigo-500 dark:bg-indigo-900/30' : 'border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50'} flex items-center justify-center transition-colors`}>
+            <div className={`w-12 h-12 rounded-full border-2 border-dashed ${isDragOver ? 'border-indigo-400 bg-indigo-100 text-indigo-500 dark:bg-indigo-900/30' : 'border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50'} flex items-center justify-center transition-colors`} aria-hidden="true">
               <Icon size={20} />
             </div>
             <span className="text-xs font-medium">{isDragOver ? 'Drop here' : 'Empty'}</span>
           </div>
         ) : (
-          <div className="flex flex-col gap-0 pb-2">
+          <div className="flex flex-col gap-0 pb-2" role="list">
             {tasks.map(task => (
-              <TaskCard 
-                key={task.id} 
-                task={task} 
-                onClick={onTaskClick}
-                onDropOver={onTaskReorder}
-              />
+              <div role="listitem" key={task.id}>
+                <TaskCard 
+                  task={task} 
+                  onClick={onTaskClick}
+                  onDropOver={onTaskReorder}
+                />
+              </div>
             ))}
           </div>
         )}
       </div>
 
       {/* Aesthetic Drop Overlay */}
-      <div className={`absolute inset-0 pointer-events-none rounded-3xl flex items-center justify-center z-20 transition-opacity duration-200 ${isDragOver ? 'opacity-100' : 'opacity-0'}`}>
+      <div className={`absolute inset-0 pointer-events-none rounded-3xl flex items-center justify-center z-20 transition-opacity duration-200 ${isDragOver ? 'opacity-100' : 'opacity-0'}`} aria-hidden="true">
          <div className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md px-6 py-4 rounded-2xl shadow-2xl border border-indigo-200 dark:border-indigo-700 text-indigo-600 dark:text-indigo-300 font-bold text-base flex flex-col items-center gap-3 transform transition-transform duration-300 scale-100">
            <div className="p-3 bg-indigo-100 dark:bg-indigo-900/50 rounded-full animate-bounce">
              <Icon size={24} />
@@ -116,7 +118,7 @@ const StatusTable: React.FC<StatusTableProps> = ({ status, tasks, count, onTaskD
            <span>Move to {status}</span>
          </div>
       </div>
-    </div>
+    </section>
   );
 };
 
