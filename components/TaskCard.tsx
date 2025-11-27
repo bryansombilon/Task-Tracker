@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 import { Task } from '../types';
 import { PRIORITY_COLORS, PRIORITY_ICONS, STATUS_CONFIG } from '../constants';
-import { Calendar, ExternalLink, Timer } from 'lucide-react';
+import { Calendar, ExternalLink, Timer, X } from 'lucide-react';
 
 interface TaskCardProps {
   task: Task;
   onClick?: (task: Task) => void;
   showStatus?: boolean;
+  onRemove?: () => void;
 }
 
-const TaskCard: React.FC<TaskCardProps> = ({ task, onClick, showStatus }) => {
+const TaskCard: React.FC<TaskCardProps> = ({ task, onClick, showStatus, onRemove }) => {
   const PriorityIcon = PRIORITY_ICONS[task.priority];
   const priorityClass = PRIORITY_COLORS[task.priority];
   const StatusConfig = STATUS_CONFIG[task.status];
@@ -18,16 +19,61 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onClick, showStatus }) => {
 
   const getCountdown = (dateString: string) => {
     if (!dateString) return null;
-    const target = new Date(dateString);
-    target.setHours(23, 59, 59, 999); // End of the deadline day
+    
+    // Parse manually to ensure local time consistency
+    const parts = dateString.split('-');
+    if (parts.length !== 3) return null;
+    const year = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10) - 1;
+    const day = parseInt(parts[2], 10);
+    
+    const target = new Date(year, month, day, 23, 59, 59, 999);
     const now = new Date();
     const diffTime = target.getTime() - now.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    // Overdue check
+    if (diffTime < 0) {
+      const daysOverdue = Math.ceil(Math.abs(diffTime) / (1000 * 60 * 60 * 24));
+      return { 
+        text: `${daysOverdue}d overdue`, 
+        color: 'text-red-600 bg-red-50 border-red-100 dark:bg-red-900/40 dark:text-red-300 dark:border-red-800' 
+      };
+    }
 
-    if (diffDays < 0) return { text: `${Math.abs(diffDays)}d overdue`, color: 'text-red-600 bg-red-50 border-red-100 dark:bg-red-900/40 dark:text-red-300 dark:border-red-800' };
-    if (diffDays === 0) return { text: 'Today', color: 'text-orange-600 bg-orange-50 border-orange-100 dark:bg-orange-900/40 dark:text-orange-300 dark:border-orange-800' };
-    if (diffDays === 1) return { text: 'Tmrw', color: 'text-amber-600 bg-amber-50 border-amber-100 dark:bg-amber-900/40 dark:text-amber-300 dark:border-amber-800' };
-    return { text: `${diffDays}d left`, color: 'text-emerald-600 bg-emerald-50 border-emerald-100 dark:bg-emerald-900/40 dark:text-emerald-300 dark:border-emerald-800' };
+    const hoursTotal = Math.floor(diffTime / (1000 * 60 * 60));
+
+    // Less than 24 hours: Show Hours and Minutes
+    if (hoursTotal < 24) {
+      const minutes = Math.floor((diffTime % (1000 * 60 * 60)) / (1000 * 60));
+      // Format text, e.g., "5h 30m left" or just "30m left" if hours is 0
+      const timeText = hoursTotal > 0 ? `${hoursTotal}h ${minutes}m left` : `${minutes}m left`;
+      
+      return { 
+        text: timeText, 
+        color: 'text-orange-600 bg-orange-50 border-orange-100 dark:bg-orange-900/40 dark:text-orange-300 dark:border-orange-800' 
+      };
+    }
+
+    // Check for "Tomorrow"
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const isTomorrow = target.getDate() === tomorrow.getDate() && 
+                       target.getMonth() === tomorrow.getMonth() && 
+                       target.getFullYear() === tomorrow.getFullYear();
+
+    if (isTomorrow) {
+      return { 
+        text: 'Tomorrow', 
+        color: 'text-amber-600 bg-amber-50 border-amber-100 dark:bg-amber-900/40 dark:text-amber-300 dark:border-amber-800' 
+      };
+    }
+
+    // Default Days calculation
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return { 
+      text: `${diffDays}d left`, 
+      color: 'text-emerald-600 bg-emerald-50 border-emerald-100 dark:bg-emerald-900/40 dark:text-emerald-300 dark:border-emerald-800' 
+    };
   };
 
   const countdown = getCountdown(task.deadline);
@@ -37,9 +83,6 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onClick, showStatus }) => {
     e.dataTransfer.setData('taskId', task.id);
     e.dataTransfer.effectAllowed = 'move';
     e.stopPropagation(); // Prevent parent handlers from interfering
-    
-    // Create a custom drag image if needed, or rely on browser default.
-    // Browser default usually works well if opacity is not 0 immediately.
   };
 
   const handleDragEnd = () => {
@@ -61,22 +104,37 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onClick, showStatus }) => {
       `}
     >
       <div className="flex justify-between items-start gap-2">
-        <h4 className="text-sm font-semibold text-zinc-800 dark:text-zinc-100 line-clamp-2 leading-snug group-hover:text-indigo-900 dark:group-hover:text-indigo-400 transition-colors">
+        <h4 className="text-sm font-semibold text-zinc-800 dark:text-zinc-100 line-clamp-2 leading-snug group-hover:text-indigo-900 dark:group-hover:text-indigo-400 transition-colors pr-6">
           {task.name}
         </h4>
-        {task.clickUpLink && (
-          <a 
-            href={task.clickUpLink} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="text-zinc-400 dark:text-zinc-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors shrink-0 p-1 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg"
-            title="Open ClickUp"
-            onMouseDown={(e) => e.stopPropagation()} 
-            onClick={(e) => e.stopPropagation()}
-          >
-            <ExternalLink size={14} />
-          </a>
-        )}
+        
+        <div className="flex items-center gap-1 shrink-0 absolute top-4 right-4">
+          {task.clickUpLink && (
+            <a 
+              href={task.clickUpLink} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-zinc-400 dark:text-zinc-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors p-1 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg"
+              title="Open ClickUp"
+              onMouseDown={(e) => e.stopPropagation()} 
+              onClick={(e) => e.stopPropagation()}
+            >
+              <ExternalLink size={14} />
+            </a>
+          )}
+          {onRemove && (
+             <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onRemove();
+              }}
+              className="text-zinc-400 dark:text-zinc-500 hover:text-red-600 dark:hover:text-red-400 transition-colors p-1 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg"
+              title="Remove from High Priority"
+             >
+               <X size={14} />
+             </button>
+          )}
+        </div>
       </div>
 
       <div className="flex items-center justify-between mt-auto pt-1">

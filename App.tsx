@@ -14,7 +14,8 @@ const INITIAL_TASKS: Task[] = [
     priority: Priority.HIGH,
     status: Status.ONGOING,
     createdAt: Date.now(),
-    notes: 'Use the gemini-2.5-flash model for faster response times.'
+    notes: 'Use the gemini-2.5-flash model for faster response times.',
+    isFocused: true
   },
   {
     id: '2',
@@ -23,7 +24,8 @@ const INITIAL_TASKS: Task[] = [
     deadline: '2024-06-01',
     priority: Priority.MEDIUM,
     status: Status.TODO,
-    createdAt: Date.now() - 1000
+    createdAt: Date.now() - 1000,
+    isFocused: false
   },
   {
     id: '3',
@@ -32,7 +34,8 @@ const INITIAL_TASKS: Task[] = [
     deadline: '2024-05-15',
     priority: Priority.URGENT,
     status: Status.REVIEWING,
-    createdAt: Date.now() - 2000
+    createdAt: Date.now() - 2000,
+    isFocused: true
   },
 ];
 
@@ -89,7 +92,8 @@ const App: React.FC = () => {
       const newTask: Task = {
         ...data,
         id: Math.random().toString(36).substr(2, 9),
-        createdAt: Date.now()
+        createdAt: Date.now(),
+        isFocused: false
       };
       setTasks(prev => [newTask, ...prev]);
     }
@@ -119,16 +123,18 @@ const App: React.FC = () => {
     ));
   };
 
-  const handlePriorityChange = (taskId: string, newPriority: Priority) => {
+  // Handles adding task to the "Focus" sidebar
+  const handleTaskFocus = (taskId: string) => {
     setTasks(prev => prev.map(task =>
-      task.id === taskId ? { ...task, priority: newPriority } : task
+      task.id === taskId ? { ...task, isFocused: true } : task
     ));
   };
 
-  const handleAddNewHighPriority = () => {
-    setEditingTask(null);
-    setModalDefaultPriority(Priority.HIGH);
-    setIsModalOpen(true);
+  // Handles removing task from the "Focus" sidebar
+  const handleTaskUnfocus = (taskId: string) => {
+    setTasks(prev => prev.map(task =>
+      task.id === taskId ? { ...task, isFocused: false } : task
+    ));
   };
 
   // Group definitions to split into the 2 right columns
@@ -154,8 +160,8 @@ const App: React.FC = () => {
           <Sidebar 
             tasks={tasks} 
             onTaskClick={handleEditTask}
-            onTaskPriorityChange={handlePriorityChange}
-            onAddNewHighPriority={handleAddNewHighPriority}
+            onTaskFocus={handleTaskFocus}
+            onTaskUnfocus={handleTaskUnfocus}
           />
         </div>
 

@@ -23,6 +23,7 @@ export interface Task {
   status: Status;
   createdAt: number;
   notes?: string;
+  isFocused?: boolean;
 }
 
-export type TaskFormData = Omit<Task, 'id' | 'createdAt'>;
+export type TaskFormData = Omit<Task, 'id' | 'createdAt' | 'isFocused'>;

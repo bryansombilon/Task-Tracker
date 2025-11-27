@@ -1,33 +1,20 @@
 import React, { useState } from 'react';
-import { Priority, Status, Task } from '../types';
+import { Task } from '../types';
 import TaskCard from './TaskCard';
-import { Focus, Zap, Plus } from 'lucide-react';
+import { Focus, Zap } from 'lucide-react';
 
 interface SidebarProps {
   tasks: Task[];
   onTaskClick?: (task: Task) => void;
-  onTaskPriorityChange?: (taskId: string, newPriority: Priority) => void;
-  onAddNewHighPriority?: () => void;
+  onTaskFocus?: (taskId: string) => void;
+  onTaskUnfocus?: (taskId: string) => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ tasks, onTaskClick, onTaskPriorityChange, onAddNewHighPriority }) => {
+const Sidebar: React.FC<SidebarProps> = ({ tasks, onTaskClick, onTaskFocus, onTaskUnfocus }) => {
   const [isDragOver, setIsDragOver] = useState(false);
 
-  // Filter for tasks that are Urgent/High priority OR Ongoing status
-  // This serves as the "Focus List"
-  const focusTasks = tasks.filter(t => 
-    t.priority === Priority.URGENT || 
-    t.priority === Priority.HIGH || 
-    t.status === Status.ONGOING
-  ).sort((a, b) => {
-    // Sort logic: Urgent first, then High, then others
-    const pScore = (p: Priority) => {
-      if (p === Priority.URGENT) return 3;
-      if (p === Priority.HIGH) return 2;
-      return 1;
-    };
-    return pScore(b.priority) - pScore(a.priority);
-  });
+  // Filter for tasks that are manually marked as "Focused"
+  const focusTasks = tasks.filter(t => t.isFocused);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -47,8 +34,8 @@ const Sidebar: React.FC<SidebarProps> = ({ tasks, onTaskClick, onTaskPriorityCha
     e.preventDefault();
     setIsDragOver(false);
     const taskId = e.dataTransfer.getData('taskId');
-    if (taskId && onTaskPriorityChange) {
-      onTaskPriorityChange(taskId, Priority.HIGH);
+    if (taskId && onTaskFocus) {
+      onTaskFocus(taskId);
     }
   };
 
@@ -103,20 +90,16 @@ const Sidebar: React.FC<SidebarProps> = ({ tasks, onTaskClick, onTaskPriorityCha
               High Priority
             </h2>
           </div>
-          <button 
-            onClick={onAddNewHighPriority}
-            className="p-1.5 rounded-lg bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-700 dark:hover:bg-zinc-600 text-zinc-600 dark:text-zinc-300 transition-colors"
-            title="Add High Priority Task"
-          >
-            <Plus size={14} />
-          </button>
         </div>
         
         <div className={`flex-1 overflow-y-auto pr-1 -mr-1 space-y-3 scrollbar-hide transition-opacity ${isDragOver ? 'opacity-40' : 'opacity-100'}`}>
           {focusTasks.length === 0 ? (
              <div className="h-full flex flex-col items-center justify-center text-zinc-400 dark:text-zinc-600 gap-3 opacity-60">
               <Zap size={24} className="text-zinc-300 dark:text-zinc-700" />
-              <span className="text-xs font-medium">All caught up!</span>
+              <div className="text-center">
+                <span className="text-xs font-medium block">Drag tasks here</span>
+                <span className="text-[10px] opacity-70">to prioritize them</span>
+              </div>
             </div>
           ) : (
             focusTasks.map(task => (
@@ -125,6 +108,7 @@ const Sidebar: React.FC<SidebarProps> = ({ tasks, onTaskClick, onTaskPriorityCha
                 task={task} 
                 onClick={onTaskClick}
                 showStatus={true}
+                onRemove={() => onTaskUnfocus && onTaskUnfocus(task.id)}
               />
             ))
           )}
@@ -135,7 +119,7 @@ const Sidebar: React.FC<SidebarProps> = ({ tasks, onTaskClick, onTaskPriorityCha
           <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-20">
              <div className="bg-white/95 dark:bg-zinc-800/95 backdrop-blur-sm px-4 py-2 rounded-xl shadow-lg border border-amber-200 dark:border-amber-800 text-amber-600 dark:text-amber-500 font-bold text-xs flex items-center gap-2 animate-in fade-in zoom-in-95 duration-200">
                <Zap size={14} className="fill-amber-600 dark:fill-amber-500" />
-               <span>Set to High Priority</span>
+               <span>Add to High Priority</span>
              </div>
           </div>
         )}
