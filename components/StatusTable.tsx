@@ -9,9 +9,10 @@ interface StatusTableProps {
   count: number;
   onTaskDrop?: (taskId: string, newStatus: Status) => void;
   onTaskClick?: (task: Task) => void;
+  onTaskReorder?: (draggedId: string, targetId: string, position: 'before' | 'after') => void;
 }
 
-const StatusTable: React.FC<StatusTableProps> = ({ status, tasks, count, onTaskDrop, onTaskClick }) => {
+const StatusTable: React.FC<StatusTableProps> = ({ status, tasks, count, onTaskDrop, onTaskClick, onTaskReorder }) => {
   const config = STATUS_CONFIG[status];
   const Icon = config.icon;
   const [isDragOver, setIsDragOver] = useState(false);
@@ -72,7 +73,7 @@ const StatusTable: React.FC<StatusTableProps> = ({ status, tasks, count, onTaskD
       </div>
 
       {/* Task List */}
-      <div className={`flex-1 overflow-y-auto pr-1 -mr-1 space-y-3 scrollbar-hide relative z-10 min-h-[100px] transition-opacity ${isDragOver ? 'opacity-40' : 'opacity-100'}`}>
+      <div className={`flex-1 overflow-y-auto pr-1 -mr-1 transition-opacity relative z-10 min-h-[100px] ${isDragOver ? 'opacity-40' : 'opacity-100'}`}>
         {tasks.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-zinc-400 dark:text-zinc-600 gap-2 opacity-50 min-h-[120px]">
             <div className={`w-12 h-12 rounded-full border-2 border-dashed ${isDragOver ? 'border-indigo-400 bg-indigo-100 text-indigo-500 dark:bg-indigo-900/30' : 'border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50'} flex items-center justify-center transition-colors`}>
@@ -81,13 +82,16 @@ const StatusTable: React.FC<StatusTableProps> = ({ status, tasks, count, onTaskD
             <span className="text-xs font-medium">{isDragOver ? 'Drop here' : 'Empty'}</span>
           </div>
         ) : (
-          tasks.map(task => (
-            <TaskCard 
-              key={task.id} 
-              task={task} 
-              onClick={onTaskClick}
-            />
-          ))
+          <div className="flex flex-col gap-0 pb-2">
+            {tasks.map(task => (
+              <TaskCard 
+                key={task.id} 
+                task={task} 
+                onClick={onTaskClick}
+                onDropOver={onTaskReorder}
+              />
+            ))}
+          </div>
         )}
       </div>
 

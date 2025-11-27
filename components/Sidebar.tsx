@@ -8,9 +8,10 @@ interface SidebarProps {
   onTaskClick?: (task: Task) => void;
   onTaskFocus?: (taskId: string) => void;
   onTaskUnfocus?: (taskId: string) => void;
+  onTaskReorder?: (draggedId: string, targetId: string, position: 'before' | 'after') => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ tasks, onTaskClick, onTaskFocus, onTaskUnfocus }) => {
+const Sidebar: React.FC<SidebarProps> = ({ tasks, onTaskClick, onTaskFocus, onTaskUnfocus, onTaskReorder }) => {
   const [isDragOver, setIsDragOver] = useState(false);
 
   // Filter for tasks that are manually marked as "Focused"
@@ -92,7 +93,7 @@ const Sidebar: React.FC<SidebarProps> = ({ tasks, onTaskClick, onTaskFocus, onTa
           </div>
         </div>
         
-        <div className={`flex-1 overflow-y-auto pr-1 -mr-1 space-y-3 scrollbar-hide transition-opacity ${isDragOver ? 'opacity-40' : 'opacity-100'}`}>
+        <div className={`flex-1 overflow-y-auto pr-1 -mr-1 transition-opacity ${isDragOver ? 'opacity-40' : 'opacity-100'}`}>
           {focusTasks.length === 0 ? (
              <div className="h-full flex flex-col items-center justify-center text-zinc-400 dark:text-zinc-600 gap-3 opacity-60">
               <Zap size={24} className="text-zinc-300 dark:text-zinc-700" />
@@ -102,15 +103,18 @@ const Sidebar: React.FC<SidebarProps> = ({ tasks, onTaskClick, onTaskFocus, onTa
               </div>
             </div>
           ) : (
-            focusTasks.map(task => (
-              <TaskCard 
-                key={`focus-${task.id}`} 
-                task={task} 
-                onClick={onTaskClick}
-                showStatus={true}
-                onRemove={() => onTaskUnfocus && onTaskUnfocus(task.id)}
-              />
-            ))
+            <div className="flex flex-col gap-0 pb-2">
+              {focusTasks.map(task => (
+                <TaskCard 
+                  key={`focus-${task.id}`} 
+                  task={task} 
+                  onClick={onTaskClick}
+                  showStatus={true}
+                  onRemove={() => onTaskUnfocus && onTaskUnfocus(task.id)}
+                  onDropOver={onTaskReorder}
+                />
+              ))}
+            </div>
           )}
         </div>
 

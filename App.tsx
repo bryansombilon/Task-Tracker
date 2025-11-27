@@ -137,6 +137,53 @@ const App: React.FC = () => {
     ));
   };
 
+  // Handles moving task within list and optionally updating status (if moved between columns)
+  const handleTaskReorder = (draggedId: string, targetId: string, position: 'before' | 'after', shouldSyncStatus: boolean) => {
+    if (draggedId === targetId) return;
+
+    setTasks(prev => {
+      const cloned = [...prev];
+      const draggedIndex = cloned.findIndex(t => t.id === draggedId);
+      if (draggedIndex === -1) return prev;
+      
+      const draggedTask = cloned[draggedIndex];
+
+      // Remove dragged task from its original position
+      cloned.splice(draggedIndex, 1);
+      
+      // Find new target index (indices might have shifted)
+      let targetIndex = cloned.findIndex(t => t.id === targetId);
+      if (targetIndex === -1) {
+          // Fallback: put it at the end if target lost (edge case)
+          cloned.push(draggedTask);
+          return cloned;
+      }
+
+      // If we want to drop 'after', we increment the insertion index
+      if (position === 'after') {
+        targetIndex++;
+      }
+
+      // Update status if required (e.g. dragging onto a card in a different column)
+      // Note: We check the target task's status to determine the new status
+      // Use original 'prev' to look up target safely or rely on targetIndex logic if tasks are sorted differently? 
+      // Actually, since we are in a flat list in App state but UI is grouped, the 'targetTask' in cloned array is reliable enough for status.
+      // However, we need to be careful if we are moving between status columns.
+      // We look at the target task at the found index (or index-1 if 'after') to guess status?
+      // Better: we know the 'targetId' task. Let's find it in the original list to get its status.
+      const targetTask = prev.find(t => t.id === targetId);
+      
+      if (shouldSyncStatus && targetTask && draggedTask.status !== targetTask.status) {
+        draggedTask.status = targetTask.status;
+      }
+
+      // Insert at computed index
+      cloned.splice(targetIndex, 0, draggedTask);
+
+      return cloned;
+    });
+  };
+
   // Group definitions to split into the 2 right columns
   const leftStatuses = [Status.TODO, Status.ONGOING, Status.ON_HOLD];
   const rightStatuses = [Status.REVIEWING, Status.PENDING, Status.DONE];
@@ -162,6 +209,7 @@ const App: React.FC = () => {
             onTaskClick={handleEditTask}
             onTaskFocus={handleTaskFocus}
             onTaskUnfocus={handleTaskUnfocus}
+            onTaskReorder={(d, t, p) => handleTaskReorder(d, t, p, false)}
           />
         </div>
 
@@ -178,6 +226,7 @@ const App: React.FC = () => {
                   count={tasks.filter(t => t.status === status).length}
                   onTaskDrop={handleStatusChange}
                   onTaskClick={handleEditTask}
+                  onTaskReorder={(d, t, p) => handleTaskReorder(d, t, p, true)}
                 />
               </div>
             ))}
@@ -193,6 +242,7 @@ const App: React.FC = () => {
                   count={tasks.filter(t => t.status === status).length}
                   onTaskDrop={handleStatusChange}
                   onTaskClick={handleEditTask}
+                  onTaskReorder={(d, t, p) => handleTaskReorder(d, t, p, true)}
                 />
               </div>
             ))}
