@@ -1,0 +1,5 @@
+{
+  "name": "BentoTask Queue",
+  "description": "A sleek, bento-grid style task management system with AI-powered prioritization.",
+  "requestFramePermissions": []
+}
