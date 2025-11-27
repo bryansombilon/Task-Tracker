@@ -38,7 +38,14 @@ const StatusTable: React.FC<StatusTableProps> = ({ status, tasks, count, onTaskD
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
+    // Always reset visual state on drop
     setIsDragOver(false);
+
+    // If the drop was already handled by a child TaskCard (reordering), stop here
+    if ((e as any).bentoTaskHandled) {
+      return;
+    }
+
     const taskId = e.dataTransfer.getData('taskId');
     if (taskId && onTaskDrop) {
       onTaskDrop(taskId, status);

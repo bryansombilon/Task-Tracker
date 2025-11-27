@@ -125,13 +125,17 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onClick, showStatus, onRemove
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
-    e.stopPropagation();
+    // We do NOT stop propagation here so the parent (StatusTable/Sidebar) can receive the drop 
+    // event to reset its isDragOver state.
+    // e.stopPropagation(); 
+    
     setDropPosition(null);
     const draggedId = e.dataTransfer.getData('taskId');
     
     if (draggedId && onDropOver) {
-      // Default to 'after' if for some reason it's null, but it should be set by dragOver
       onDropOver(draggedId, task.id, dropPosition || 'after');
+      // Mark event as handled by the task reordering logic
+      (e as any).bentoTaskHandled = true;
     }
   };
 

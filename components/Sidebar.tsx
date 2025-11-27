@@ -34,6 +34,10 @@ const Sidebar: React.FC<SidebarProps> = ({ tasks, onTaskClick, onTaskFocus, onTa
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(false);
+
+    // If child task handled reordering, don't execute focus logic
+    if ((e as any).bentoTaskHandled) return;
+
     const taskId = e.dataTransfer.getData('taskId');
     if (taskId && onTaskFocus) {
       onTaskFocus(taskId);
