@@ -21,7 +21,12 @@
               sans: ['Inter', 'system-ui', 'sans-serif'],
             }
           }
-        }
+        },
+        plugins: [
+          function({ addVariant }) {
+            addVariant('mixed', '.mixed &');
+          }
+        ]
       }
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -32,9 +37,15 @@
         color: #18181b;
       }
       .dark body {
-        background-color: #18181b;
+        background-color: #09090b; /* zinc-950 */
         color: #f4f4f5;
       }
+      /* Ensure mixed theme uses dark body background */
+      .mixed body {
+        background-color: #09090b;
+        color: #f4f4f5;
+      }
+
       /* Custom Scrollbar for Bento feel */
       ::-webkit-scrollbar {
         width: 8px;
@@ -48,13 +59,13 @@
         border-radius: 4px;
       }
       .dark ::-webkit-scrollbar-thumb {
-        background: #3f3f46;
+        background: #52525b; /* zinc-600 - brighter than before for visibility on dark */
       }
       ::-webkit-scrollbar-thumb:hover {
         background: #a1a1aa; 
       }
       .dark ::-webkit-scrollbar-thumb:hover {
-        background: #52525b;
+        background: #71717a; /* zinc-500 */
       }
     </style>
   <script type="importmap">

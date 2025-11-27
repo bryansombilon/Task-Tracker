@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Task, Status } from '../types';
 import { STATUS_CONFIG } from '../constants';
@@ -73,7 +74,7 @@ const StatusTable: React.FC<StatusTableProps> = ({ status, tasks, count, onTaskD
         ${isDragOver ? 'scale-[1.02] shadow-sm' : ''}
       `}>
         <div className="flex items-center gap-2.5">
-          <div className="bg-white/40 dark:bg-black/20 p-1.5 rounded-lg backdrop-blur-sm">
+          <div className="bg-white/50 dark:bg-black/40 p-1.5 rounded-lg backdrop-blur-sm">
             <Icon size={18} />
           </div>
           <h3 className="text-sm font-bold tracking-wide uppercase opacity-90">{status}</h3>

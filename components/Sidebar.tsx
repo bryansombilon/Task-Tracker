@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Task } from '../types';
 import TaskCard from './TaskCard';
 import { Focus, Zap } from 'lucide-react';
@@ -13,6 +14,14 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ tasks, onTaskClick, onTaskFocus, onTaskUnfocus, onTaskReorder }) => {
   const [isDragOver, setIsDragOver] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   // Filter for tasks that are manually marked as "Focused"
   const focusTasks = tasks.filter(t => t.isFocused);
@@ -63,11 +72,20 @@ const Sidebar: React.FC<SidebarProps> = ({ tasks, onTaskClick, onTaskFocus, onTa
           </div>
         </div>
         
-        <div className="pt-4 border-t border-zinc-200/50 dark:border-zinc-700/50 relative z-10">
-           <p className="text-[10px] text-zinc-400 dark:text-zinc-500 mb-1 uppercase tracking-widest font-bold">Your Focus</p>
-           <div className="flex items-baseline gap-2">
-             <span className="text-5xl font-bold text-zinc-900 dark:text-zinc-50 tracking-tight">{focusTasks.length}</span>
-             <span className="text-sm text-zinc-500 dark:text-zinc-400 font-medium">active items</span>
+        <div className="pt-5 border-t border-zinc-200/50 dark:border-zinc-700/50 relative z-10 grid grid-cols-2 gap-2">
+           <div>
+             <p className="text-[10px] text-zinc-400 dark:text-zinc-500 uppercase tracking-widest font-bold mb-1">Focus Items</p>
+             <div className="flex items-baseline gap-1">
+               <span className="text-4xl xl:text-5xl font-bold text-zinc-900 dark:text-zinc-50 tracking-tight">{focusTasks.length}</span>
+               <span className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">active</span>
+             </div>
+           </div>
+           
+           <div className="text-right">
+             <p className="text-[10px] text-zinc-400 dark:text-zinc-500 uppercase tracking-widest font-bold mb-1">Local Time</p>
+             <div className="text-3xl xl:text-4xl font-bold text-zinc-900 dark:text-zinc-50 tracking-tight font-variant-numeric tabular-nums leading-none">
+               {currentTime.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true })}
+             </div>
            </div>
         </div>
       </div>
@@ -88,8 +106,8 @@ const Sidebar: React.FC<SidebarProps> = ({ tasks, onTaskClick, onTaskFocus, onTa
       >
         <div className="flex items-center justify-between mb-2 px-1 relative z-10">
           <div className="flex items-center gap-2">
-            <div className={`p-1 bg-amber-100/50 dark:bg-amber-900/30 rounded-lg transition-transform duration-300 ${isDragOver ? 'scale-125 rotate-6' : ''}`}>
-               <Zap size={14} className="text-amber-500 fill-amber-500" />
+            <div className={`p-1 bg-amber-200 dark:bg-amber-900 rounded-lg transition-transform duration-300 ${isDragOver ? 'scale-125 rotate-6' : ''}`}>
+               <Zap size={14} className="text-amber-600 dark:text-amber-100" />
             </div>
             <h2 className="text-xs text-zinc-600 dark:text-zinc-300 font-bold uppercase tracking-wider">
               High Priority

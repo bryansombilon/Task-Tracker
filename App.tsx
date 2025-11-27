@@ -3,7 +3,7 @@ import { Task, Priority, Status, TaskFormData } from './types';
 import Sidebar from './components/Sidebar';
 import StatusTable from './components/StatusTable';
 import AddTaskModal from './components/AddTaskModal';
-import { Plus, Sun, Moon } from 'lucide-react';
+import { Plus, Sun, Moon, Palette } from 'lucide-react';
 
 const INITIAL_TASKS: Task[] = [
   {
@@ -39,23 +39,37 @@ const INITIAL_TASKS: Task[] = [
   },
 ];
 
+type ThemeMode = 'light' | 'dark' | 'mixed';
+
 const App: React.FC = () => {
-  // Theme management
-  const [isDarkMode, setIsDarkMode] = useState(() => {
+  // Theme management: 'light' | 'dark' | 'mixed'
+  const [theme, setTheme] = useState<ThemeMode>(() => {
     if (typeof window !== 'undefined') {
-      return document.documentElement.classList.contains('dark');
+      if (document.documentElement.classList.contains('mixed')) return 'mixed';
+      if (document.documentElement.classList.contains('dark')) return 'dark';
     }
-    return false;
+    return 'light';
   });
 
-  const toggleTheme = () => {
-    const newMode = !isDarkMode;
-    setIsDarkMode(newMode);
-    if (newMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
+  // Apply theme classes to html element
+  useEffect(() => {
+    const root = document.documentElement;
+    root.classList.remove('dark', 'mixed');
+
+    if (theme === 'dark') {
+      root.classList.add('dark');
+    } else if (theme === 'mixed') {
+      root.classList.add('dark', 'mixed');
     }
+    // light mode has no classes
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => {
+      if (prev === 'light') return 'dark';
+      if (prev === 'dark') return 'mixed';
+      return 'light';
+    });
   };
 
   // Initialize state from LocalStorage if available, otherwise use defaults
@@ -166,11 +180,6 @@ const App: React.FC = () => {
 
       // Update status if required (e.g. dragging onto a card in a different column)
       // Note: We check the target task's status to determine the new status
-      // Use original 'prev' to look up target safely or rely on targetIndex logic if tasks are sorted differently? 
-      // Actually, since we are in a flat list in App state but UI is grouped, the 'targetTask' in cloned array is reliable enough for status.
-      // However, we need to be careful if we are moving between status columns.
-      // We look at the target task at the found index (or index-1 if 'after') to guess status?
-      // Better: we know the 'targetId' task. Let's find it in the original list to get its status.
       const targetTask = prev.find(t => t.id === targetId);
       
       if (shouldSyncStatus && targetTask && draggedTask.status !== targetTask.status) {
@@ -195,9 +204,11 @@ const App: React.FC = () => {
       <button 
         onClick={toggleTheme}
         className="fixed top-6 right-6 z-50 p-2.5 rounded-full bg-white dark:bg-zinc-800 shadow-md border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all hover:scale-105"
-        title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+        title={`Current Theme: ${theme.charAt(0).toUpperCase() + theme.slice(1)}`}
       >
-        {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+        {theme === 'light' && <Sun size={20} />}
+        {theme === 'dark' && <Moon size={20} />}
+        {theme === 'mixed' && <Palette size={20} />}
       </button>
 
       <div className="flex-1 max-w-[1800px] mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-6 h-full">
