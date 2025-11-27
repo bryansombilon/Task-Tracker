@@ -36,8 +36,8 @@ export const STATUS_CONFIG: Record<Status, { color: string, headerTheme: string,
   [Status.TODO]: { 
     // Status chips inside cards
     color: 'text-zinc-600 dark:text-zinc-200 mixed:text-zinc-600', 
-    // Header styling - Solid opaque colors with high contrast text
-    headerTheme: 'bg-zinc-200 text-zinc-900 border-zinc-300 dark:bg-zinc-800 dark:text-white dark:border-zinc-600',
+    // Header styling - Increased contrast (zinc-300 light, zinc-700 dark)
+    headerTheme: 'bg-zinc-300 text-zinc-900 border-zinc-400 dark:bg-zinc-700 dark:text-white dark:border-zinc-600',
     icon: Circle 
   },
   [Status.ONGOING]: { 
